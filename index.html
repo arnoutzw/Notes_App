@@ -370,7 +370,7 @@
                     </div>
                     
                     <!-- Preview Pane -->
-                    <div id="preview-pane" class="flex-1 overflow-y-auto bg-zinc-950 p-6 markdown-preview hidden">
+                    <div id="preview-pane" class="flex-1 overflow-y-auto bg-zinc-950 p-6 markdown-preview">
                         <div id="preview-content"></div>
                     </div>
                 </div>
@@ -492,9 +492,26 @@
             loadFirebaseConfig();
             setupEventListeners();
             loadNotesFromStorage();
-            
+            ensureNoteOpen();
+
             if (!app.firebaseConfig) {
                 showFirebaseModal();
+            }
+        }
+
+        function ensureNoteOpen() {
+            // If no notes exist, create the welcome note
+            if (app.notes.size === 0) {
+                const id = createWelcomeNote();
+                renderFileTree();
+                openNote(id);
+                return;
+            }
+
+            // If notes exist but none is open, open the first one
+            if (!app.currentNoteId) {
+                const firstNoteId = app.notes.keys().next().value;
+                openNote(firstNoteId);
             }
         }
 
@@ -724,30 +741,137 @@
             openNote(id);
         }
 
+        function createWelcomeNote() {
+            const id = 'note-' + Date.now();
+            const content = `# Launch Checklist — v1.0
+
+> "Move fast, build things that matter."
+
+Welcome to your **engineering workspace**. Write in the left pane and watch the *live preview* update on the right.
+
+---
+
+## Stack Overview
+
+| Layer       | Technology      | Status   |
+|-------------|-----------------|----------|
+| Frontend    | React + Vite    | ✅ Live  |
+| API         | Node / Express  | ✅ Live  |
+| Database    | PostgreSQL      | ✅ Live  |
+| Infra       | AWS / Terraform | 🚧 WIP  |
+
+## Sprint Priorities
+
+- [x] Set up CI/CD pipeline
+- [x] Implement user auth (OAuth 2.0)
+- [ ] Build dashboard analytics
+- [ ] Load testing before launch
+- [ ] Write API documentation
+
+## Quick Reference
+
+### Inline Code & Blocks
+
+Use backticks for \`inline code\` like variable names or CLI commands.
+
+\`\`\`python
+# Fibonacci — because every whiteboard asks
+def fib(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+\`\`\`
+
+\`\`\`javascript
+// Express health-check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime() });
+});
+\`\`\`
+
+### Text Formatting
+
+- **Bold** for emphasis
+- *Italic* for nuance
+- ~~Strikethrough~~ for killed features
+- \`code\` for technical terms
+
+### Blockquotes
+
+> Ship the MVP first. Optimize later.
+> Perfection is the enemy of progress.
+
+### Links & References
+
+Link to resources: [Y Combinator](https://www.ycombinator.com) | [Hacker News](https://news.ycombinator.com)
+
+Reference other notes with wiki-links: [[Untitled Note]]
+
+### Tags
+
+#startup #engineering #mvp #launch
+
+---
+
+*Start editing this note or create a new one from the sidebar. Happy building!*
+`;
+            const note = {
+                id,
+                title: 'Launch Checklist — v1.0',
+                content,
+                folder: 'root',
+                tags: ['startup', 'engineering', 'mvp', 'launch'],
+                createdAt: new Date(),
+                updatedAt: new Date()
+            };
+
+            app.notes.set(id, note);
+            saveNoteToFirebase(note);
+            return id;
+        }
+
         function openNote(noteId) {
             const note = app.notes.get(noteId);
             if (!note) return;
-            
+
             app.currentNoteId = noteId;
-            
+
             const editor = document.getElementById('editor');
             editor.value = note.content;
-            
+
+            // Always enforce split (Code + Preview) mode
+            if (app.mode !== 'split') {
+                app.mode = 'split';
+                document.getElementById('edit-pane').classList.remove('hidden');
+                document.getElementById('preview-pane').classList.remove('hidden');
+                ['mode-edit-only', 'mode-preview-only', 'mode-split'].forEach(id => {
+                    const btn = document.getElementById(id);
+                    btn.classList.remove('bg-amber-500/20', 'border', 'border-amber-500', 'text-amber-400');
+                    btn.classList.add('bg-zinc-800', 'text-zinc-300');
+                });
+                const splitBtn = document.getElementById('mode-split');
+                splitBtn.classList.remove('bg-zinc-800', 'text-zinc-300');
+                splitBtn.classList.add('bg-amber-500/20', 'border', 'border-amber-500', 'text-amber-400');
+            }
+            // Ensure preview pane is visible even on first load
+            document.getElementById('preview-pane').classList.remove('hidden');
+
             // Update tab
             renderEditorTabs();
-            
+
             // Update preview
             updatePreview();
-            
+
             // Update right sidebar
             updateBacklinks();
             updateTags();
             updateOutline();
-            
+
             // Clear search highlight
             document.getElementById('search-input').value = '';
             app.searchQuery = '';
-            
+
             // Scroll editor to top
             editor.scrollTop = 0;
         }
