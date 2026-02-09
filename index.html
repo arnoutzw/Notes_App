@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Notes PWA - A powerful note-taking app with graph view">
+    <meta name="description" content="Notes PWA - A powerful note-taking app">
     <meta name="theme-color" content="#09090b">
     <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Notes%22,%22short_name%22:%22Notes%22,%22description%22:%22A%20powerful%20note-taking%20app%22,%22start_url%22:%22/%22,%22scope%22:%22/%22,%22display%22:%22standalone%22,%22orientation%22:%22portrait-primary%22,%22background_color%22:%22%2309090b%22,%22theme_color%22:%22%23f59e0b%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%2309090b' width='192' height='192'/><text x='50%' y='50%' font-size='100' fill='%23f59e0b' text-anchor='middle' dominant-baseline='middle' font-family='monospace' font-weight='bold'>N</text></svg>%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22},{%22src%22:%22data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%2309090b' width='512' height='512'/><text x='50%' y='50%' font-size='250' fill='%23f59e0b' text-anchor='middle' dominant-baseline='middle' font-family='monospace' font-weight='bold'>N</text></svg>%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22}]}">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%2309090b' width='100' height='100'/><text x='50' y='50' font-size='60' fill='%23f59e0b' text-anchor='middle' dominant-baseline='middle' font-family='monospace' font-weight='bold'>N</text></svg>">
@@ -16,8 +16,6 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/highlight.js/dist/highlight.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js/styles/atom-one-dark.min.css">
-    
-    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
     
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
     
@@ -204,14 +202,6 @@
             border-color: #f59e0b;
         }
         
-        #graph-canvas {
-            cursor: grab;
-        }
-        
-        #graph-canvas:active {
-            cursor: grabbing;
-        }
-        
         .node {
             cursor: pointer;
             stroke-width: 2px;
@@ -302,14 +292,11 @@
         <!-- Header -->
         <header class="sticky top-0 z-40 bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-800 px-4 py-3">
             <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-                <!-- Left: Logo + Menu Toggle -->
+                <!-- Left: Logo -->
                 <div class="flex items-center gap-4">
-                    <button id="toggle-sidebar-left" class="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-amber-400 smooth-transition" title="Toggle File Tree">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    </button>
                     <div class="font-mono font-bold text-lg text-amber-500">Notes</div>
                 </div>
-                
+
                 <!-- Center: Search -->
                 <div class="flex-1 max-w-md">
                     <div class="relative">
@@ -317,15 +304,9 @@
                         <svg class="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </div>
                 </div>
-                
+
                 <!-- Right: Buttons -->
                 <div class="flex items-center gap-2">
-                    <button id="graph-toggle-btn" class="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-amber-400 smooth-transition" title="Graph View">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                    </button>
-                    <button id="toggle-sidebar-right" class="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-amber-400 smooth-transition" title="Toggle Right Sidebar">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    </button>
                     <button id="settings-btn" class="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-amber-400 smooth-transition" title="Settings">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </button>
@@ -341,6 +322,13 @@
         <div class="flex-1 flex overflow-hidden">
             <!-- Left Sidebar: File Tree -->
             <aside id="sidebar-left" class="w-64 bg-zinc-900 border-r border-zinc-800 overflow-hidden flex flex-col smooth-transition">
+                <!-- Collapse button -->
+                <div class="flex items-center justify-between px-4 py-2 border-b border-zinc-800">
+                    <span class="text-xs font-mono font-bold text-zinc-500 uppercase tracking-wide">Files</span>
+                    <button id="collapse-sidebar-left" class="p-1 hover:bg-zinc-800 rounded text-zinc-500 hover:text-amber-400 smooth-transition" title="Collapse sidebar">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                </div>
                 <!-- New Note Button -->
                 <div class="p-4 border-b border-zinc-800">
                     <button id="new-note-btn" class="w-full bg-amber-500 hover:bg-amber-400 text-zinc-900 font-mono font-bold px-4 py-2.5 rounded-lg smooth-transition flex items-center justify-center gap-2">
@@ -348,12 +336,17 @@
                         New Note
                     </button>
                 </div>
-                
+
                 <!-- File Tree -->
                 <div id="file-tree" class="flex-1 overflow-y-auto px-2 py-3">
                     <div class="text-zinc-500 text-xs font-mono text-center py-8">No notes yet</div>
                 </div>
             </aside>
+
+            <!-- Left Sidebar Expand Tab (visible when collapsed) -->
+            <button id="expand-sidebar-left" class="hidden bg-zinc-900 border-r border-zinc-800 px-1 py-0 flex-col items-center justify-start pt-3 hover:bg-zinc-800 smooth-transition text-zinc-500 hover:text-amber-400" title="Expand sidebar">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
 
             <!-- Center: Editor -->
             <main class="flex-1 flex flex-col overflow-hidden bg-zinc-950">
@@ -393,11 +386,19 @@
                 </div>
             </main>
 
+            <!-- Right Sidebar Expand Tab (visible when collapsed) -->
+            <button id="expand-sidebar-right" class="hidden bg-zinc-900 border-l border-zinc-800 px-1 py-0 flex-col items-center justify-start pt-3 hover:bg-zinc-800 smooth-transition text-zinc-500 hover:text-amber-400" title="Expand cheatsheet">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+
             <!-- Right Sidebar: Markdown Cheatsheet -->
-            <aside id="sidebar-right" class="w-64 bg-zinc-900 border-l border-zinc-800 overflow-hidden flex flex-col smooth-transition hidden">
-                <!-- Header -->
-                <div class="px-4 py-3 border-b border-zinc-800">
-                    <div class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide">Markdown Cheatsheet</div>
+            <aside id="sidebar-right" class="w-64 bg-zinc-900 border-l border-zinc-800 overflow-hidden flex flex-col smooth-transition">
+                <!-- Header with collapse button -->
+                <div class="flex items-center justify-between px-4 py-2 border-b border-zinc-800">
+                    <span class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide">MD Cheatsheet</span>
+                    <button id="collapse-sidebar-right" class="p-1 hover:bg-zinc-800 rounded text-zinc-500 hover:text-amber-400 smooth-transition" title="Collapse sidebar">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
                 </div>
 
                 <!-- Content -->
@@ -482,25 +483,6 @@
 
                 </div>
             </aside>
-        </div>
-    </div>
-
-    <!-- Graph View Modal -->
-    <div id="graph-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex flex-col hidden">
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <div class="bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
-                <div class="font-mono font-bold text-lg text-amber-500">Graph View</div>
-                <button id="close-graph-btn" class="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-amber-400 smooth-transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-            <div id="graph-container" class="flex-1 bg-zinc-950 relative overflow-hidden">
-                <svg id="graph-canvas" class="w-full h-full"></svg>
-                <div id="graph-stats" class="absolute bottom-4 left-4 bg-zinc-900/80 backdrop-blur-sm border border-zinc-700 rounded-lg p-3 text-xs font-mono text-zinc-400">
-                    <div><span class="text-amber-500" id="graph-node-count">0</span> notes</div>
-                    <div><span class="text-amber-500" id="graph-link-count">0</span> connections</div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -703,7 +685,6 @@
                         }
                     });
                     renderFileTree();
-                    updateGraphView();
                 });
                 
                 app.firebaseInitialized = true;
@@ -1103,7 +1084,6 @@ Reference other notes with wiki-links: [[Untitled Note]]
                         }
                         deleteNoteFromFirebase(noteId);
                         renderFileTree();
-                        updateGraphView();
                     }
                 });
             });
@@ -1206,157 +1186,6 @@ Reference other notes with wiki-links: [[Untitled Note]]
             tree.innerHTML = buildTree(headings);
         }
 
-        // ==================== GRAPH VIEW ====================
-        function updateGraphView() {
-            const nodes = [];
-            const links = [];
-            const nodeMap = new Map();
-            
-            // Create nodes
-            app.notes.forEach(note => {
-                nodes.push({
-                    id: note.id,
-                    title: note.title,
-                    label: note.title.substring(0, 20)
-                });
-                nodeMap.set(note.id, nodes[nodes.length - 1]);
-            });
-            
-            // Create links from wiki-links
-            app.notes.forEach(note => {
-                const wikiLinkRegex = /\[\[([^\]]+)\]\]/g;
-                let match;
-                const linkedNotes = new Set();
-                
-                while ((match = wikiLinkRegex.exec(note.content)) !== null) {
-                    const linkedNote = findNoteByTitle(match[1].trim());
-                    if (linkedNote && linkedNote.id !== note.id && !linkedNotes.has(linkedNote.id)) {
-                        links.push({
-                            source: note.id,
-                            target: linkedNote.id
-                        });
-                        linkedNotes.add(linkedNote.id);
-                    }
-                }
-            });
-            
-            // Store for rendering
-            app.graphData = { nodes, links };
-        }
-
-        function renderGraphView() {
-            if (!app.graphData) return;
-            
-            const { nodes, links } = app.graphData;
-            
-            if (nodes.length === 0) {
-                document.getElementById('graph-stats').innerHTML = '<div class="text-zinc-500 text-xs font-mono">No notes to display</div>';
-                return;
-            }
-            
-            document.getElementById('graph-node-count').textContent = nodes.length;
-            document.getElementById('graph-link-count').textContent = links.length;
-            
-            const svg = d3.select('#graph-canvas');
-            const width = svg.node().clientWidth;
-            const height = svg.node().clientHeight;
-            
-            // Clear previous content
-            svg.selectAll('*').remove();
-            
-            const simulation = d3.forceSimulation(nodes)
-                .force('link', d3.forceLink(links).id(d => d.id).distance(100))
-                .force('charge', d3.forceManyBody().strength(-500))
-                .force('center', d3.forceCenter(width / 2, height / 2))
-                .force('collision', d3.forceCollide().radius(40));
-            
-            const g = svg.append('g');
-            
-            // Links
-            const link = g.selectAll('line')
-                .data(links)
-                .enter()
-                .append('line')
-                .attr('class', 'link')
-                .attr('stroke', '#52525b')
-                .attr('stroke-opacity', 0.6)
-                .attr('stroke-width', 2);
-            
-            // Nodes
-            const node = g.selectAll('circle')
-                .data(nodes)
-                .enter()
-                .append('circle')
-                .attr('class', 'node')
-                .attr('r', 20)
-                .attr('fill', d => d.id === app.currentNoteId ? '#f59e0b' : '#27272a')
-                .attr('stroke', '#f59e0b')
-                .attr('stroke-width', d => d.id === app.currentNoteId ? 3 : 2)
-                .call(d3.drag()
-                    .on('start', dragStarted)
-                    .on('drag', dragged)
-                    .on('end', dragEnded))
-                .on('click', (event, d) => {
-                    openNote(d.id);
-                    updateGraphView();
-                    renderGraphView();
-                });
-            
-            // Labels
-            const labels = g.selectAll('text')
-                .data(nodes)
-                .enter()
-                .append('text')
-                .attr('font-family', 'JetBrains Mono')
-                .attr('font-size', '11px')
-                .attr('text-anchor', 'middle')
-                .attr('dy', '.3em')
-                .attr('fill', '#f4f4f5')
-                .text(d => d.label)
-                .style('pointer-events', 'none');
-            
-            // Zoom
-            const zoom = d3.zoom()
-                .on('zoom', (event) => {
-                    g.attr('transform', event.transform);
-                });
-            
-            svg.call(zoom);
-            
-            simulation.on('tick', () => {
-                link
-                    .attr('x1', d => d.source.x)
-                    .attr('y1', d => d.source.y)
-                    .attr('x2', d => d.target.x)
-                    .attr('y2', d => d.target.y);
-                
-                node
-                    .attr('cx', d => d.x = Math.max(20, Math.min(width - 20, d.x)))
-                    .attr('cy', d => d.y = Math.max(20, Math.min(height - 20, d.y)));
-                
-                labels
-                    .attr('x', d => d.x)
-                    .attr('y', d => d.y);
-            });
-            
-            function dragStarted(event, d) {
-                if (!event.active) simulation.alphaTarget(0.3).restart();
-                d.fx = d.x;
-                d.fy = d.y;
-            }
-            
-            function dragged(event, d) {
-                d.fx = event.x;
-                d.fy = event.y;
-            }
-            
-            function dragEnded(event, d) {
-                if (!event.active) simulation.alphaTarget(0);
-                d.fx = null;
-                d.fy = null;
-            }
-        }
-
         // ==================== UTILITY FUNCTIONS ====================
         function findNoteByTitle(title) {
             for (let note of app.notes.values()) {
@@ -1424,15 +1253,30 @@ Reference other notes with wiki-links: [[Untitled Note]]
                 performSearch(e.target.value);
             });
             
-            // Sidebar Toggles
-            document.getElementById('toggle-sidebar-left').addEventListener('click', () => {
-                document.getElementById('sidebar-left').classList.toggle('hidden');
+            // Left Sidebar Collapse/Expand
+            document.getElementById('collapse-sidebar-left').addEventListener('click', () => {
+                document.getElementById('sidebar-left').classList.add('hidden');
+                document.getElementById('expand-sidebar-left').classList.remove('hidden');
+                document.getElementById('expand-sidebar-left').classList.add('flex');
             });
-            
-            document.getElementById('toggle-sidebar-right').addEventListener('click', () => {
-                document.getElementById('sidebar-right').classList.toggle('hidden');
+            document.getElementById('expand-sidebar-left').addEventListener('click', () => {
+                document.getElementById('sidebar-left').classList.remove('hidden');
+                document.getElementById('expand-sidebar-left').classList.add('hidden');
+                document.getElementById('expand-sidebar-left').classList.remove('flex');
             });
-            
+
+            // Right Sidebar Collapse/Expand
+            document.getElementById('collapse-sidebar-right').addEventListener('click', () => {
+                document.getElementById('sidebar-right').classList.add('hidden');
+                document.getElementById('expand-sidebar-right').classList.remove('hidden');
+                document.getElementById('expand-sidebar-right').classList.add('flex');
+            });
+            document.getElementById('expand-sidebar-right').addEventListener('click', () => {
+                document.getElementById('sidebar-right').classList.remove('hidden');
+                document.getElementById('expand-sidebar-right').classList.add('hidden');
+                document.getElementById('expand-sidebar-right').classList.remove('flex');
+            });
+
             // Outline Panel Toggle
             document.getElementById('outline-toggle').addEventListener('click', () => {
                 const tree = document.getElementById('outline-tree');
@@ -1455,17 +1299,6 @@ Reference other notes with wiki-links: [[Untitled Note]]
                 }
             });
 
-            // Graph View
-            document.getElementById('graph-toggle-btn').addEventListener('click', () => {
-                updateGraphView();
-                document.getElementById('graph-modal').classList.remove('hidden');
-                setTimeout(renderGraphView, 100);
-            });
-            
-            document.getElementById('close-graph-btn').addEventListener('click', () => {
-                document.getElementById('graph-modal').classList.add('hidden');
-            });
-            
             // Settings
             document.getElementById('settings-btn').addEventListener('click', () => {
                 document.getElementById('settings-modal').classList.remove('hidden');
@@ -1530,7 +1363,6 @@ Reference other notes with wiki-links: [[Untitled Note]]
                 if (e.key === 'Escape') {
                     document.getElementById('firebase-modal').classList.add('hidden');
                     document.getElementById('settings-modal').classList.add('hidden');
-                    document.getElementById('graph-modal').classList.add('hidden');
                 }
             });
         }
