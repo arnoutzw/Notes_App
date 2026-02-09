@@ -391,6 +391,7 @@
                     <button class="sidebar-right-tab flex-1 px-4 py-3 text-xs font-mono text-zinc-400 hover:text-amber-400 border-b-2 border-transparent hover:border-amber-500 smooth-transition active" data-tab="backlinks">Backlinks</button>
                     <button class="sidebar-right-tab flex-1 px-4 py-3 text-xs font-mono text-zinc-400 hover:text-amber-400 border-b-2 border-transparent hover:border-amber-500 smooth-transition" data-tab="tags">Tags</button>
                     <button class="sidebar-right-tab flex-1 px-4 py-3 text-xs font-mono text-zinc-400 hover:text-amber-400 border-b-2 border-transparent hover:border-amber-500 smooth-transition" data-tab="outline">Outline</button>
+                    <button class="sidebar-right-tab flex-1 px-4 py-3 text-xs font-mono text-zinc-400 hover:text-amber-400 border-b-2 border-transparent hover:border-amber-500 smooth-transition" data-tab="cheatsheet">MD</button>
                 </div>
                 
                 <!-- Content -->
@@ -408,6 +409,88 @@
                     <!-- Outline -->
                     <div id="tab-outline" class="sidebar-right-content p-4 space-y-2 hidden">
                         <div class="text-zinc-500 text-xs font-mono">No headings</div>
+                    </div>
+
+                    <!-- Markdown Cheatsheet -->
+                    <div id="tab-cheatsheet" class="sidebar-right-content p-4 space-y-4 hidden">
+
+                        <div>
+                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Headings</h4>
+                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
+                                <div># Heading 1</div>
+                                <div>## Heading 2</div>
+                                <div>### Heading 3</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Emphasis</h4>
+                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
+                                <div>**bold**</div>
+                                <div>*italic*</div>
+                                <div>~~strikethrough~~</div>
+                                <div>`inline code`</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Links & Images</h4>
+                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
+                                <div>[text](url)</div>
+                                <div>![alt](image-url)</div>
+                                <div>[[Wiki Link]]</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Lists</h4>
+                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
+                                <div>- Unordered item</div>
+                                <div>1. Ordered item</div>
+                                <div>- [x] Task (done)</div>
+                                <div>- [ ] Task (todo)</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Blockquote</h4>
+                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300">
+                                <div>> Quote text</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Code Block</h4>
+                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
+                                <div>```language</div>
+                                <div>code here</div>
+                                <div>```</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Table</h4>
+                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
+                                <div>| Col 1 | Col 2 |</div>
+                                <div>|-------|-------|</div>
+                                <div>| data  | data  |</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Horizontal Rule</h4>
+                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300">
+                                <div>---</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Tags</h4>
+                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300">
+                                <div>#tagname</div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </aside>
