@@ -361,6 +361,15 @@
                 <div id="editor-tabs" class="bg-zinc-900 border-b border-zinc-800 overflow-x-auto flex items-center">
                     <div class="text-zinc-500 text-xs font-mono px-4 py-3 w-full text-center">No notes open</div>
                 </div>
+
+                <!-- Collapsible Outline Tree -->
+                <div id="outline-panel" class="bg-zinc-900/60 border-b border-zinc-800 hidden">
+                    <button id="outline-toggle" class="w-full flex items-center gap-2 px-4 py-2 text-xs font-mono text-zinc-400 hover:text-amber-400 smooth-transition">
+                        <svg id="outline-chevron" class="w-3 h-3 smooth-transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <span class="text-zinc-500 uppercase tracking-wide">Outline</span>
+                    </button>
+                    <div id="outline-tree" class="px-4 pb-3 overflow-y-auto max-h-48"></div>
+                </div>
                 
                 <!-- Editor Split View -->
                 <div class="flex-1 flex overflow-hidden gap-0.5 bg-zinc-950">
@@ -384,114 +393,93 @@
                 </div>
             </main>
 
-            <!-- Right Sidebar: Backlinks, Tags, Outline -->
+            <!-- Right Sidebar: Markdown Cheatsheet -->
             <aside id="sidebar-right" class="w-64 bg-zinc-900 border-l border-zinc-800 overflow-hidden flex flex-col smooth-transition hidden">
-                <!-- Tabs -->
-                <div class="flex border-b border-zinc-800">
-                    <button class="sidebar-right-tab flex-1 px-4 py-3 text-xs font-mono text-zinc-400 hover:text-amber-400 border-b-2 border-transparent hover:border-amber-500 smooth-transition active" data-tab="backlinks">Backlinks</button>
-                    <button class="sidebar-right-tab flex-1 px-4 py-3 text-xs font-mono text-zinc-400 hover:text-amber-400 border-b-2 border-transparent hover:border-amber-500 smooth-transition" data-tab="tags">Tags</button>
-                    <button class="sidebar-right-tab flex-1 px-4 py-3 text-xs font-mono text-zinc-400 hover:text-amber-400 border-b-2 border-transparent hover:border-amber-500 smooth-transition" data-tab="outline">Outline</button>
-                    <button class="sidebar-right-tab flex-1 px-4 py-3 text-xs font-mono text-zinc-400 hover:text-amber-400 border-b-2 border-transparent hover:border-amber-500 smooth-transition" data-tab="cheatsheet">MD</button>
+                <!-- Header -->
+                <div class="px-4 py-3 border-b border-zinc-800">
+                    <div class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide">Markdown Cheatsheet</div>
                 </div>
-                
+
                 <!-- Content -->
-                <div class="flex-1 overflow-y-auto">
-                    <!-- Backlinks -->
-                    <div id="tab-backlinks" class="sidebar-right-content p-4 space-y-3">
-                        <div class="text-zinc-500 text-xs font-mono">No backlinks</div>
-                    </div>
-                    
-                    <!-- Tags -->
-                    <div id="tab-tags" class="sidebar-right-content p-4 space-y-2 hidden">
-                        <div class="text-zinc-500 text-xs font-mono">No tags</div>
-                    </div>
-                    
-                    <!-- Outline -->
-                    <div id="tab-outline" class="sidebar-right-content p-4 space-y-2 hidden">
-                        <div class="text-zinc-500 text-xs font-mono">No headings</div>
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+
+                    <div>
+                        <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Headings</h4>
+                        <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
+                            <div># Heading 1</div>
+                            <div>## Heading 2</div>
+                            <div>### Heading 3</div>
+                        </div>
                     </div>
 
-                    <!-- Markdown Cheatsheet -->
-                    <div id="tab-cheatsheet" class="sidebar-right-content p-4 space-y-4 hidden">
-
-                        <div>
-                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Headings</h4>
-                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
-                                <div># Heading 1</div>
-                                <div>## Heading 2</div>
-                                <div>### Heading 3</div>
-                            </div>
+                    <div>
+                        <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Emphasis</h4>
+                        <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
+                            <div>**bold**</div>
+                            <div>*italic*</div>
+                            <div>~~strikethrough~~</div>
+                            <div>`inline code`</div>
                         </div>
-
-                        <div>
-                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Emphasis</h4>
-                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
-                                <div>**bold**</div>
-                                <div>*italic*</div>
-                                <div>~~strikethrough~~</div>
-                                <div>`inline code`</div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Links & Images</h4>
-                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
-                                <div>[text](url)</div>
-                                <div>![alt](image-url)</div>
-                                <div>[[Wiki Link]]</div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Lists</h4>
-                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
-                                <div>- Unordered item</div>
-                                <div>1. Ordered item</div>
-                                <div>- [x] Task (done)</div>
-                                <div>- [ ] Task (todo)</div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Blockquote</h4>
-                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300">
-                                <div>> Quote text</div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Code Block</h4>
-                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
-                                <div>```language</div>
-                                <div>code here</div>
-                                <div>```</div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Table</h4>
-                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
-                                <div>| Col 1 | Col 2 |</div>
-                                <div>|-------|-------|</div>
-                                <div>| data  | data  |</div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Horizontal Rule</h4>
-                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300">
-                                <div>---</div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Tags</h4>
-                            <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300">
-                                <div>#tagname</div>
-                            </div>
-                        </div>
-
                     </div>
+
+                    <div>
+                        <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Links & Images</h4>
+                        <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
+                            <div>[text](url)</div>
+                            <div>![alt](image-url)</div>
+                            <div>[[Wiki Link]]</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Lists</h4>
+                        <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
+                            <div>- Unordered item</div>
+                            <div>1. Ordered item</div>
+                            <div>- [x] Task (done)</div>
+                            <div>- [ ] Task (todo)</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Blockquote</h4>
+                        <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300">
+                            <div>> Quote text</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Code Block</h4>
+                        <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
+                            <div>```language</div>
+                            <div>code here</div>
+                            <div>```</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Table</h4>
+                        <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300 space-y-0.5">
+                            <div>| Col 1 | Col 2 |</div>
+                            <div>|-------|-------|</div>
+                            <div>| data  | data  |</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Horizontal Rule</h4>
+                        <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300">
+                            <div>---</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wide mb-2">Tags</h4>
+                        <div class="bg-zinc-800 rounded-lg p-2.5 font-mono text-xs text-zinc-300">
+                            <div>#tagname</div>
+                        </div>
+                    </div>
+
                 </div>
             </aside>
         </div>
@@ -946,9 +934,7 @@ Reference other notes with wiki-links: [[Untitled Note]]
             // Update preview
             updatePreview();
 
-            // Update right sidebar
-            updateBacklinks();
-            updateTags();
+            // Update outline tree
             updateOutline();
 
             // Clear search highlight
@@ -1018,8 +1004,9 @@ Reference other notes with wiki-links: [[Untitled Note]]
             document.getElementById('status-words').textContent = `${words} words`;
             document.getElementById('status-chars').textContent = `${chars} chars`;
             
-            // Auto-update preview
+            // Auto-update preview and outline
             updatePreview();
+            updateOutline();
             
             // Auto-save
             clearTimeout(app.autoSaveTimer);
@@ -1165,105 +1152,58 @@ Reference other notes with wiki-links: [[Untitled Note]]
             }
         }
 
-        // ==================== BACKLINKS ====================
-        function updateBacklinks() {
-            const note = app.notes.get(app.currentNoteId);
-            if (!note) return;
-            
-            const backlinks = [];
-            
-            app.notes.forEach(otherNote => {
-                if (otherNote.id === note.id) return;
-                
-                // Check if otherNote links to current note
-                const wikiLinkRegex = /\[\[([^\]]+)\]\]/g;
-                let match;
-                while ((match = wikiLinkRegex.exec(otherNote.content)) !== null) {
-                    if (match[1].trim().toLowerCase() === note.title.toLowerCase()) {
-                        backlinks.push(otherNote);
-                        break;
-                    }
-                }
-            });
-            
-            const container = document.getElementById('tab-backlinks');
-            
-            if (backlinks.length === 0) {
-                container.innerHTML = '<div class="text-zinc-500 text-xs font-mono">No backlinks</div>';
-                return;
-            }
-            
-            container.innerHTML = backlinks.map(backlink => `
-                <div class="p-2 bg-zinc-800 border border-zinc-700 rounded-lg hover:border-amber-500/50 cursor-pointer smooth-transition" onclick="window.app.openNote('${backlink.id}'); return false;">
-                    <div class="text-sm font-mono text-amber-400">${backlink.title}</div>
-                    <div class="text-xs text-zinc-500 mt-1">${backlink.content.substring(0, 100)}...</div>
-                </div>
-            `).join('');
-        }
-
-        // ==================== TAGS ====================
-        function updateTags() {
-            const note = app.notes.get(app.currentNoteId);
-            if (!note) return;
-            
-            // Extract tags from content
-            const tagRegex = /#[\w-]+/g;
-            const tags = new Set();
-            let match;
-            
-            while ((match = tagRegex.exec(note.content)) !== null) {
-                tags.add(match[0]);
-            }
-            
-            const container = document.getElementById('tab-tags');
-            
-            if (tags.size === 0) {
-                container.innerHTML = '<div class="text-zinc-500 text-xs font-mono">No tags</div>';
-                return;
-            }
-            
-            container.innerHTML = Array.from(tags).map(tag => `
-                <div class="text-xs px-2 py-1 bg-amber-500/10 text-amber-400 rounded font-mono cursor-pointer hover:bg-amber-500/20 smooth-transition" onclick="window.app.filterByTag('${tag}')">
-                    ${tag}
-                </div>
-            `).join('');
-        }
-
-        function filterByTag(tag) {
-            app.selectedTags.has(tag) ? app.selectedTags.delete(tag) : app.selectedTags.add(tag);
-            // Filter logic could be added here
-        }
-
         // ==================== OUTLINE ====================
         function updateOutline() {
             const note = app.notes.get(app.currentNoteId);
-            if (!note) return;
-            
+            const panel = document.getElementById('outline-panel');
+            const tree = document.getElementById('outline-tree');
+            if (!note) { panel.classList.add('hidden'); return; }
+
             const headingRegex = /^(#{1,6})\s+(.+)$/gm;
             const headings = [];
             let match;
-            
+
             while ((match = headingRegex.exec(note.content)) !== null) {
-                const level = match[1].length;
-                const text = match[2];
-                headings.push({ level, text });
+                headings.push({ level: match[1].length, text: match[2] });
             }
-            
-            const container = document.getElementById('tab-outline');
-            
+
             if (headings.length === 0) {
-                container.innerHTML = '<div class="text-zinc-500 text-xs font-mono">No headings</div>';
+                panel.classList.add('hidden');
                 return;
             }
-            
-            container.innerHTML = headings.map(heading => {
-                const indent = (heading.level - 1) * 12;
-                return `
-                    <div style="margin-left: ${indent}px;" class="text-xs font-mono text-zinc-400 py-1 cursor-pointer hover:text-amber-400 smooth-transition">
-                        ${heading.text}
-                    </div>
-                `;
-            }).join('');
+
+            panel.classList.remove('hidden');
+
+            // Build nested tree structure
+            function buildTree(items) {
+                let html = '';
+                let i = 0;
+                while (i < items.length) {
+                    const item = items[i];
+                    // Collect children (headings with a deeper level)
+                    const children = [];
+                    let j = i + 1;
+                    while (j < items.length && items[j].level > item.level) {
+                        children.push(items[j]);
+                        j++;
+                    }
+                    const hasChildren = children.length > 0;
+                    const chevron = hasChildren
+                        ? `<svg class="w-3 h-3 text-zinc-600 smooth-transition outline-item-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>`
+                        : `<span class="w-3 h-3 inline-block"></span>`;
+                    html += `<div class="outline-node">`;
+                    html += `<div class="flex items-center gap-1.5 py-1 cursor-pointer hover:text-amber-400 smooth-transition text-xs font-mono text-zinc-400 outline-item" style="padding-left:${(item.level - 1) * 10}px">`;
+                    html += `${chevron}<span>${item.text}</span></div>`;
+                    if (hasChildren) {
+                        html += `<div class="outline-children">${buildTree(children)}</div>`;
+                    }
+                    html += `</div>`;
+                    i = j;
+                }
+                return html;
+            }
+
+            tree.innerHTML = buildTree(headings);
         }
 
         // ==================== GRAPH VIEW ====================
@@ -1493,6 +1433,28 @@ Reference other notes with wiki-links: [[Untitled Note]]
                 document.getElementById('sidebar-right').classList.toggle('hidden');
             });
             
+            // Outline Panel Toggle
+            document.getElementById('outline-toggle').addEventListener('click', () => {
+                const tree = document.getElementById('outline-tree');
+                const chevron = document.getElementById('outline-chevron');
+                tree.classList.toggle('hidden');
+                chevron.style.transform = tree.classList.contains('hidden') ? 'rotate(-90deg)' : '';
+            });
+
+            // Outline tree item collapse (delegated)
+            document.getElementById('outline-tree').addEventListener('click', (e) => {
+                const item = e.target.closest('.outline-item');
+                if (!item) return;
+                const node = item.closest('.outline-node');
+                const children = node.querySelector('.outline-children');
+                if (!children) return;
+                children.classList.toggle('hidden');
+                const chevron = item.querySelector('.outline-item-chevron');
+                if (chevron) {
+                    chevron.style.transform = children.classList.contains('hidden') ? 'rotate(-90deg)' : '';
+                }
+            });
+
             // Graph View
             document.getElementById('graph-toggle-btn').addEventListener('click', () => {
                 updateGraphView();
@@ -1502,22 +1464,6 @@ Reference other notes with wiki-links: [[Untitled Note]]
             
             document.getElementById('close-graph-btn').addEventListener('click', () => {
                 document.getElementById('graph-modal').classList.add('hidden');
-            });
-            
-            // Right Sidebar Tabs
-            document.querySelectorAll('.sidebar-right-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    document.querySelectorAll('.sidebar-right-tab').forEach(t => {
-                        t.classList.remove('active', 'border-amber-500');
-                        t.classList.add('border-transparent');
-                    });
-                    tab.classList.add('active', 'border-amber-500');
-                    
-                    document.querySelectorAll('.sidebar-right-content').forEach(content => {
-                        content.classList.add('hidden');
-                    });
-                    document.getElementById('tab-' + tab.dataset.tab).classList.remove('hidden');
-                });
             });
             
             // Settings
@@ -1615,8 +1561,7 @@ Reference other notes with wiki-links: [[Untitled Note]]
         // Make app accessible globally
         window.app = {
             openNote,
-            openNoteByTitle,
-            filterByTag
+            openNoteByTitle
         };
 
         // Initialize on load
