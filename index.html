@@ -246,47 +246,6 @@
 </head>
 <body class="bg-zinc-950">
     <!-- Firebase Setup Modal -->
-    <div id="firebase-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-zinc-900 border border-zinc-700 rounded-xl p-8 max-w-md w-full mx-4">
-            <h2 class="font-mono font-bold text-2xl text-amber-500 mb-2">Setup Firebase</h2>
-            <p class="text-zinc-400 text-sm mb-6">Enter your Firebase configuration to store notes in the cloud</p>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="text-xs text-zinc-500 font-mono uppercase tracking-wide block mb-2">API Key</label>
-                    <input type="text" id="firebase-api-key" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none" placeholder="Your API Key">
-                </div>
-                <div>
-                    <label class="text-xs text-zinc-500 font-mono uppercase tracking-wide block mb-2">Auth Domain</label>
-                    <input type="text" id="firebase-auth-domain" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none" placeholder="example.firebaseapp.com">
-                </div>
-                <div>
-                    <label class="text-xs text-zinc-500 font-mono uppercase tracking-wide block mb-2">Project ID</label>
-                    <input type="text" id="firebase-project-id" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none" placeholder="example-project">
-                </div>
-                <div>
-                    <label class="text-xs text-zinc-500 font-mono uppercase tracking-wide block mb-2">Storage Bucket</label>
-                    <input type="text" id="firebase-storage-bucket" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none" placeholder="example.appspot.com">
-                </div>
-                <div>
-                    <label class="text-xs text-zinc-500 font-mono uppercase tracking-wide block mb-2">Messaging Sender ID</label>
-                    <input type="text" id="firebase-messaging-sender-id" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none" placeholder="123456789">
-                </div>
-                <div>
-                    <label class="text-xs text-zinc-500 font-mono uppercase tracking-wide block mb-2">App ID</label>
-                    <input type="text" id="firebase-app-id" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none" placeholder="1:123456789:web:abc123">
-                </div>
-            </div>
-            
-            <div class="mt-8 flex gap-3">
-                <button id="firebase-skip-btn" class="flex-1 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-mono px-3 py-2.5 rounded-lg transition-all duration-300">Skip (Local Storage)</button>
-                <button id="firebase-save-btn" class="flex-1 bg-amber-500 hover:bg-amber-400 text-zinc-900 font-mono font-bold px-4 py-2.5 rounded-lg transition-all duration-300">Save & Connect</button>
-            </div>
-            
-            <p class="text-zinc-500 text-xs mt-4 font-mono text-center">You can change this later in Settings</p>
-        </div>
-    </div>
-
     <!-- Main App Container -->
     <div id="app" class="w-full h-full flex flex-col">
         <!-- Header -->
@@ -505,12 +464,7 @@
                 </div>
                 
                 <hr class="border-zinc-700">
-                
-                <div>
-                    <label class="text-xs text-zinc-500 font-mono uppercase tracking-wide block mb-2">Firebase Config</label>
-                    <button id="configure-firebase-btn" class="w-full px-3 py-2.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-xs font-mono text-zinc-300 smooth-transition">Reconfigure</button>
-                </div>
-                
+
                 <div>
                     <label class="text-xs text-zinc-500 font-mono uppercase tracking-wide block mb-2">Data</label>
                     <button id="export-notes-btn" class="w-full px-3 py-2.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-xs font-mono text-zinc-300 smooth-transition mb-2">Export All Notes (JSON)</button>
@@ -642,21 +596,6 @@
         }
 
         // ==================== FIREBASE ====================
-        function loadFirebaseConfig() {
-            const stored = localStorage.getItem('firebase-config');
-            if (stored) {
-                app.firebaseConfig = JSON.parse(stored);
-            }
-        }
-
-        function showFirebaseModal() {
-            document.getElementById('firebase-modal').classList.remove('hidden');
-        }
-
-        function hideFirebaseModal() {
-            document.getElementById('firebase-modal').classList.add('hidden');
-        }
-
         async function initializeFirebase() {
             try {
                 if (!app.firebaseConfig) return;
@@ -747,6 +686,11 @@
                         idToken: data.sso.idToken,
                     };
 
+                    // Store Firebase config from SSO if provided
+                    if (data.sso.firebaseConfig) {
+                        app.firebaseConfig = data.sso.firebaseConfig;
+                    }
+
                     // Sign in with Firebase Auth if available
                     if (app.firebaseAuth && data.sso.idToken) {
                         try {
@@ -784,13 +728,8 @@
             // Switch to persistent per-user notes
             if (app.db) {
                 subscribeToNotes();
-            } else {
-                loadFirebaseConfig();
-                if (app.firebaseConfig) {
-                    initializeFirebase();
-                } else {
-                    showFirebaseModal();
-                }
+            } else if (app.firebaseConfig) {
+                initializeFirebase();
             }
         }
 
@@ -1350,26 +1289,6 @@ Reference other notes with wiki-links: [[Untitled Note]]
 
         // ==================== EVENT LISTENERS ====================
         function setupEventListeners() {
-            // Firebase Modal
-            document.getElementById('firebase-save-btn').addEventListener('click', () => {
-                const config = {
-                    apiKey: document.getElementById('firebase-api-key').value,
-                    authDomain: document.getElementById('firebase-auth-domain').value,
-                    projectId: document.getElementById('firebase-project-id').value,
-                    storageBucket: document.getElementById('firebase-storage-bucket').value,
-                    messagingSenderId: document.getElementById('firebase-messaging-sender-id').value,
-                    appId: document.getElementById('firebase-app-id').value
-                };
-                localStorage.setItem('firebase-config', JSON.stringify(config));
-                app.firebaseConfig = config;
-                initializeFirebase();
-                hideFirebaseModal();
-            });
-            
-            document.getElementById('firebase-skip-btn').addEventListener('click', () => {
-                hideFirebaseModal();
-            });
-            
             // Editor
             document.getElementById('editor').addEventListener('input', updateEditorFromTextarea);
             document.getElementById('editor').addEventListener('keydown', (e) => {
@@ -1468,11 +1387,6 @@ Reference other notes with wiki-links: [[Untitled Note]]
                 updateModeButtons();
             });
             
-            document.getElementById('configure-firebase-btn').addEventListener('click', () => {
-                document.getElementById('settings-modal').classList.add('hidden');
-                showFirebaseModal();
-            });
-            
             document.getElementById('export-notes-btn').addEventListener('click', () => {
                 const json = JSON.stringify(Array.from(app.notes.values()), null, 2);
                 const blob = new Blob([json], { type: 'application/json' });
@@ -1499,7 +1413,6 @@ Reference other notes with wiki-links: [[Untitled Note]]
             // Close modals on escape
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
-                    document.getElementById('firebase-modal').classList.add('hidden');
                     document.getElementById('settings-modal').classList.add('hidden');
                 }
             });
