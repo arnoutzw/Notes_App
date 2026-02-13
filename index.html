@@ -307,6 +307,9 @@
 
                 <!-- Right: Buttons -->
                 <div class="flex items-center gap-2">
+                    <!-- SSO User Info -->
+                    <div id="user-info" class="hidden items-center gap-2 px-3 py-1.5 bg-zinc-800 border border-zinc-700 rounded-lg">
+                    </div>
                     <button id="settings-btn" class="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-amber-400 smooth-transition" title="Settings">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </button>
@@ -533,15 +536,19 @@
             firebaseConfig: null,
             firebaseInitialized: false,
             db: null,
+            firebaseAuth: null,
             unsubscribe: null,
             lastSaved: new Date(),
-            autoSaveTimer: null
+            autoSaveTimer: null,
+            currentUser: null,
+            isAdmin: false
         };
 
         // ==================== INITIALIZATION ====================
         function init() {
             setupServiceWorker();
             setupTailwind();
+            setupSSOListener();
             loadFirebaseConfig();
             setupEventListeners();
             loadNotesFromStorage();
@@ -658,18 +665,181 @@
         async function initializeFirebase() {
             try {
                 if (!app.firebaseConfig) return;
-                
+
                 // Dynamically import Firebase modules
                 const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js');
-                const { getFirestore, collection, onSnapshot, setDoc, deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
-                
+                const { getFirestore } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js');
+
                 const firebaseApp = initializeApp(app.firebaseConfig);
                 app.db = getFirestore(firebaseApp);
-                
-                // Set up real-time listener
-                if (app.unsubscribe) app.unsubscribe();
-                
-                app.unsubscribe = onSnapshot(collection(app.db, 'notes'), (snapshot) => {
+                app.firebaseAuth = getAuth(firebaseApp);
+
+                // Subscribe to notes (uses per-user path if SSO user is signed in)
+                await subscribeToNotes();
+
+                app.firebaseInitialized = true;
+                updateConnectionStatus(true);
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+                updateConnectionStatus(false);
+            }
+        }
+
+        async function saveNoteToFirebase(note) {
+            if (!app.db) {
+                saveNoteToStorage(note);
+                return;
+            }
+
+            try {
+                const { setDoc, doc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+
+                const collPath = getNotesCollectionPath();
+                await setDoc(doc(app.db, ...collPath, note.id), {
+                    title: note.title,
+                    content: note.content,
+                    folder: note.folder || 'root',
+                    tags: note.tags || [],
+                    createdAt: note.createdAt || serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                });
+
+                updateLastSaved();
+            } catch (error) {
+                console.error('Error saving note:', error);
+                saveNoteToStorage(note);
+            }
+        }
+
+        async function deleteNoteFromFirebase(noteId) {
+            if (!app.db) {
+                deleteNoteFromStorage(noteId);
+                return;
+            }
+
+            try {
+                const { deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                const collPath = getNotesCollectionPath();
+                await deleteDoc(doc(app.db, ...collPath, noteId));
+            } catch (error) {
+                console.error('Error deleting note:', error);
+                deleteNoteFromStorage(noteId);
+            }
+        }
+
+        // ==================== SSO INTEGRATION ====================
+        function getNotesCollectionPath() {
+            if (app.currentUser) {
+                return ['users', app.currentUser.uid, 'notes'];
+            }
+            return ['notes'];
+        }
+
+        function setupSSOListener() {
+            window.addEventListener('message', async (event) => {
+                const data = event.data;
+                if (!data || data.type !== 'admin-auth') return;
+
+                app.isAdmin = !!data.isAdmin;
+
+                if (data.sso) {
+                    app.currentUser = {
+                        uid: data.sso.uid,
+                        email: data.sso.email,
+                        displayName: data.sso.displayName,
+                        photoURL: data.sso.photoURL,
+                        idToken: data.sso.idToken,
+                    };
+
+                    // Sign in with Firebase Auth if available
+                    if (app.firebaseAuth && data.sso.idToken) {
+                        try {
+                            const { GoogleAuthProvider, signInWithCredential } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js');
+                            const credential = GoogleAuthProvider.credential(data.sso.idToken);
+                            await signInWithCredential(app.firebaseAuth, credential);
+                            console.log('Signed in via parent SSO');
+                        } catch (err) {
+                            console.warn('SSO sign-in failed, using token for display only:', err.message);
+                        }
+                    }
+
+                    onUserSignedIn(app.currentUser);
+                } else {
+                    app.currentUser = null;
+
+                    // Sign out from Firebase Auth
+                    if (app.firebaseAuth) {
+                        try {
+                            const { signOut } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js');
+                            await signOut(app.firebaseAuth);
+                        } catch (err) {
+                            // Ignore sign-out errors
+                        }
+                    }
+
+                    onUserSignedOut();
+                }
+            });
+        }
+
+        function onUserSignedIn(user) {
+            updateUserInfoUI(user);
+            // Re-subscribe to per-user notes collection
+            if (app.db) {
+                subscribeToNotes();
+            }
+        }
+
+        function onUserSignedOut() {
+            updateUserInfoUI(null);
+            // Re-subscribe to global notes collection
+            if (app.db) {
+                subscribeToNotes();
+            }
+        }
+
+        function updateUserInfoUI(user) {
+            const header = document.getElementById('user-info');
+            if (!header) return;
+
+            if (user) {
+                header.classList.remove('hidden');
+                header.classList.add('flex');
+                const photoHTML = user.photoURL
+                    ? `<img src="${user.photoURL}" alt="" style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(245,158,11,0.5);" referrerpolicy="no-referrer">`
+                    : `<div style="width:28px;height:28px;border-radius:50%;background:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;color:#09090b;">${(user.displayName || user.email || '?')[0].toUpperCase()}</div>`;
+                header.innerHTML = `
+                    ${photoHTML}
+                    <span class="font-mono text-xs text-zinc-400 max-w-[120px] truncate">${user.displayName || user.email}</span>
+                `;
+            } else {
+                header.classList.add('hidden');
+                header.classList.remove('flex');
+                header.innerHTML = '';
+            }
+        }
+
+        async function subscribeToNotes() {
+            if (!app.db) return;
+
+            try {
+                const { collection, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+
+                // Unsubscribe from previous listener
+                if (app.unsubscribe) {
+                    app.unsubscribe();
+                    app.unsubscribe = null;
+                }
+
+                // Clear current notes before re-subscribing
+                app.notes.clear();
+                app.currentNoteId = null;
+
+                const collPath = getNotesCollectionPath();
+                const notesCol = collection(app.db, ...collPath);
+
+                app.unsubscribe = onSnapshot(notesCol, (snapshot) => {
                     snapshot.docChanges().forEach((change) => {
                         const data = change.doc.data();
                         if (change.type === 'added' || change.type === 'modified') {
@@ -685,53 +855,10 @@
                         }
                     });
                     renderFileTree();
+                    ensureNoteOpen();
                 });
-                
-                app.firebaseInitialized = true;
-                updateConnectionStatus(true);
             } catch (error) {
-                console.error('Firebase initialization error:', error);
-                updateConnectionStatus(false);
-            }
-        }
-
-        async function saveNoteToFirebase(note) {
-            if (!app.db) {
-                saveNoteToStorage(note);
-                return;
-            }
-            
-            try {
-                const { setDoc, doc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
-                
-                await setDoc(doc(app.db, 'notes', note.id), {
-                    title: note.title,
-                    content: note.content,
-                    folder: note.folder || 'root',
-                    tags: note.tags || [],
-                    createdAt: note.createdAt || serverTimestamp(),
-                    updatedAt: serverTimestamp()
-                });
-                
-                updateLastSaved();
-            } catch (error) {
-                console.error('Error saving note:', error);
-                saveNoteToStorage(note);
-            }
-        }
-
-        async function deleteNoteFromFirebase(noteId) {
-            if (!app.db) {
-                deleteNoteFromStorage(noteId);
-                return;
-            }
-            
-            try {
-                const { deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
-                await deleteDoc(doc(app.db, 'notes', noteId));
-            } catch (error) {
-                console.error('Error deleting note:', error);
-                deleteNoteFromStorage(noteId);
+                console.error('Error subscribing to notes:', error);
             }
         }
 
