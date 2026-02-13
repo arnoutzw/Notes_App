@@ -321,19 +321,8 @@
             </div>
         </header>
 
-        <!-- Auth Gate Overlay -->
-        <div id="auth-gate" class="flex-1 flex items-center justify-center bg-zinc-950">
-            <div class="text-center px-6">
-                <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center">
-                    <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                </div>
-                <h2 class="font-mono font-bold text-xl text-zinc-100 mb-2">Sign in required</h2>
-                <p class="text-zinc-500 text-sm max-w-xs mx-auto">Sign in through the portfolio to view and edit your notes.</p>
-            </div>
-        </div>
-
         <!-- Main Content Area -->
-        <div id="main-content" class="flex-1 flex overflow-hidden hidden">
+        <div class="flex-1 flex overflow-hidden">
             <!-- Left Sidebar: File Tree -->
             <aside id="sidebar-left" class="w-64 bg-zinc-900 border-r border-zinc-800 overflow-hidden flex flex-col smooth-transition">
                 <!-- Collapse button -->
@@ -560,9 +549,11 @@
             setupServiceWorker();
             setupTailwind();
             setupSSOListener();
-            loadFirebaseConfig();
             setupEventListeners();
-            // Notes are loaded after SSO sign-in via onUserSignedIn()
+            // Start in temporary mode with localStorage
+            loadNotesFromStorage();
+            ensureNoteOpen();
+            updateConnectionStatus(false, true);
         }
 
         function ensureNoteOpen() {
@@ -644,7 +635,6 @@
                 
                 navigator.serviceWorker.register(swUrl).then((reg) => {
                     console.log('Service Worker registered');
-                    updateConnectionStatus(true);
                 }).catch((error) => {
                     console.log('Service Worker registration failed:', error);
                 });
@@ -656,7 +646,6 @@
             const stored = localStorage.getItem('firebase-config');
             if (stored) {
                 app.firebaseConfig = JSON.parse(stored);
-                initializeFirebase();
             }
         }
 
@@ -685,10 +674,10 @@
                 await subscribeToNotes();
 
                 app.firebaseInitialized = true;
-                updateConnectionStatus(true);
+                updateConnectionStatus(true, false);
             } catch (error) {
                 console.error('Firebase initialization error:', error);
-                updateConnectionStatus(false);
+                updateConnectionStatus(false, false);
             }
         }
 
@@ -789,47 +778,34 @@
             });
         }
 
-        function updateAuthGate() {
-            const gate = document.getElementById('auth-gate');
-            const main = document.getElementById('main-content');
-            if (app.currentUser) {
-                gate.classList.add('hidden');
-                main.classList.remove('hidden');
-            } else {
-                gate.classList.remove('hidden');
-                main.classList.add('hidden');
-            }
-        }
-
         function onUserSignedIn(user) {
             updateUserInfoUI(user);
-            updateAuthGate();
-            // Load notes for signed-in user
+            updateConnectionStatus(true, false);
+            // Switch to persistent per-user notes
             if (app.db) {
                 subscribeToNotes();
-            } else if (app.firebaseConfig) {
-                initializeFirebase();
             } else {
-                loadNotesFromStorage();
-                ensureNoteOpen();
-                showFirebaseModal();
+                loadFirebaseConfig();
+                if (app.firebaseConfig) {
+                    initializeFirebase();
+                } else {
+                    showFirebaseModal();
+                }
             }
         }
 
         function onUserSignedOut() {
             updateUserInfoUI(null);
-            // Clear notes and editor
+            // Unsubscribe from Firestore and switch back to temporary localStorage
             if (app.unsubscribe) {
                 app.unsubscribe();
                 app.unsubscribe = null;
             }
             app.notes.clear();
             app.currentNoteId = null;
-            document.getElementById('editor').value = '';
-            document.getElementById('preview-content').innerHTML = '';
-            document.getElementById('editor-tabs').innerHTML = '<div class="text-zinc-500 text-xs font-mono px-4 py-3 w-full text-center">No notes open</div>';
-            document.getElementById('file-tree').innerHTML = '<div class="text-zinc-500 text-xs font-mono text-center py-8">No notes yet</div>';
-            updateAuthGate();
+            loadNotesFromStorage();
+            ensureNoteOpen();
+            updateConnectionStatus(false, true);
         }
 
         function updateUserInfoUI(user) {
@@ -933,7 +909,6 @@
 
         // ==================== EDITOR ====================
         function createNewNote() {
-            if (!app.currentUser) return;
             const id = 'note-' + Date.now();
             const note = {
                 id,
@@ -1114,7 +1089,6 @@ Reference other notes with wiki-links: [[Untitled Note]]
         }
 
         function updateEditorFromTextarea() {
-            if (!app.currentUser) return;
             const note = app.notes.get(app.currentNoteId);
             if (!note) return;
             
@@ -1363,12 +1337,14 @@ Reference other notes with wiki-links: [[Untitled Note]]
             if (note) openNote(note.id);
         }
 
-        function updateConnectionStatus(connected) {
+        function updateConnectionStatus(connected, isTemporary) {
             const status = document.getElementById('connection-status');
-            if (connected) {
-                status.innerHTML = '<div class="pulse-dot w-2 h-2 bg-green-400 rounded-full"></div><span class="font-mono text-xs text-zinc-400">Online</span>';
+            if (isTemporary) {
+                status.innerHTML = '<div class="w-2 h-2 bg-yellow-400 rounded-full"></div><span class="font-mono text-xs text-zinc-400">Temporary</span>';
+            } else if (connected) {
+                status.innerHTML = '<div class="pulse-dot w-2 h-2 bg-green-400 rounded-full"></div><span class="font-mono text-xs text-zinc-400">Synced</span>';
             } else {
-                status.innerHTML = '<div class="w-2 h-2 bg-yellow-400 rounded-full"></div><span class="font-mono text-xs text-zinc-400">Offline</span>';
+                status.innerHTML = '<div class="w-2 h-2 bg-red-400 rounded-full"></div><span class="font-mono text-xs text-zinc-400">Offline</span>';
             }
         }
 
